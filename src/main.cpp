@@ -1,15 +1,15 @@
 #define STB_IMAGE_IMPLEMENTATION
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include "stb_image.h"
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "shaderClass.h"
-#include "camera.h"
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include "stb_image.h"
+
+#include "Helpers/shaderClass.h"
+#include "Helpers/camera.h"
 
 #include <iostream>
 
@@ -84,8 +84,8 @@ int main()
     // build and compile our shader zprogram
     // ------------------------------------
     Shader ourShader(
-        "C:\\Users\\HP\\source\\repos\\pyre\\cubeVertexShader.vs",
-        "C:\\Users\\HP\\source\\repos\\pyre\\cubeFragmentShader.fs");
+        "C:\\Users\\HP\\source\\repos\\pyre\\shaders\\cubeVertexShader.vs",
+        "C:\\Users\\HP\\source\\repos\\pyre\\shaders\\cubeFragmentShader.fs");
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
