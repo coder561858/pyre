@@ -1368,6 +1368,16 @@
     <None Include="pyre\x64\Debug\pyre.tlog\link.secondary.1.tlog" />
     <None Include="pyre\x64\Debug\pyre.tlog\link.write.1.tlog" />
     <None Include="pyre\x64\Debug\pyre.tlog\pyre.lastbuildstate" />
+    <None Include="shaders\cubeLightVertexShader.vs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\cubeLightFragmentShader.fs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\lightningFragmentShader.fs" />
+    <None Include="shaders\ligthningVertexShader.vs">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="includes\glm\CMakeLists.txt" />

@@ -145,6 +145,9 @@
   <ItemGroup>
     <ClCompile Include="includes\glm\detail\glm.cpp" />
     <ClCompile Include="includes\glm\glm.cppm" />
+    <None Include="shaders\ligthningVertexShader.vs">
+      <FileType>Document</FileType>
+    </None>
     <ClCompile Include="src\Helpers\shaderClass.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="includes\glad\src\glad.c" />
@@ -604,7 +607,10 @@
     <None Include="pyre\x64\Debug\vc143.idb" />
     <None Include="pyre\x64\Debug\vc143.pdb" />
     <None Include="shaders\cubeFragmentShader.fs" />
+    <None Include="shaders\cubeLightFragmentShader.fs" />
+    <None Include="shaders\cubeLightVertexShader.vs" />
     <None Include="shaders\cubeVertexShader.vs" />
+    <None Include="shaders\lightningFragmentShader.fs" />
     <None Include="x64\Debug\pyre.exe" />
     <None Include="x64\Debug\pyre.pdb" />
   </ItemGroup>
