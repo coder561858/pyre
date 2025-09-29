@@ -1384,13 +1384,10 @@
     <Object Include="pyre\x64\Debug\shaderClass.obj" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\..\Downloads\dirt.jpg">
+    <Image Include="resources\container2.jpg">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\..\..\Downloads\container2.jpg">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="..\..\..\Downloads\container.jpg">
+    <Image Include="resources\dirt.jpg">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
