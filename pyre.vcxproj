@@ -622,6 +622,11 @@
     <Object Include="pyre\x64\Debug\main.obj" />
     <Object Include="pyre\x64\Debug\shaderClass.obj" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\..\Downloads\container.jpg" />
+    <Image Include="..\..\..\Downloads\container2.jpg" />
+    <Image Include="..\..\..\Downloads\dirt.jpg" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
