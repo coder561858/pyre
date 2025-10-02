@@ -22,28 +22,26 @@ Clone the repository:
 ```bash
 git clone https://github.com/Open=Source-Chandigarh/pyre.git
 cd pyre
-
-Build using CMake:
-
-mkdir build && cd build
-cmake ..
-make
-
-
-Run the engine:
-
-./pyre
+```
 
 🚀 Usage
 
-Simply run the compiled binary to start the demo scene with current features (Phong lighting + diffuse textures).
+Open the project in Visual Studio:
 
-As development continues, additional demos and scenes will be added to showcase new rendering techniques.
+Double-click the Pyre.sln file.
+
+Select Build > Build Solution or press Ctrl+Shift+B.
+
+Make sure the configuration is set to Debug or Release as needed.
+
+Run the main.cpp from within Visual Studio (press F5 to start debugging or Ctrl+F5 to run without debugging).
+
+A demo scene will run more scenes will be added as development continues.
 
 🤝 Contributing
 
 Contributions, bug reports, and suggestions are welcome!
-If you’d like to contribute, please read the CONTRIBUTING.md (coming soon).
+If you’d like to contribute, please read the CONTRIBUTING.md.
 
 📚 Learning Resource
 
