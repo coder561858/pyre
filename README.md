@@ -24,7 +24,7 @@ git clone https://github.com/Open=Source-Chandigarh/pyre.git
 cd pyre
 ```
 
-🚀 Usage
+## 🚀 Usage
 
 Open the project in Visual Studio:
 
@@ -38,22 +38,22 @@ Run the main.cpp from within Visual Studio (press F5 to start debugging or Ctrl+
 
 A demo scene will run more scenes will be added as development continues.
 
-🤝 Contributing
+## 🤝 Contributing
 
 Contributions, bug reports, and suggestions are welcome!
 If you’d like to contribute, please read the CONTRIBUTING.md.
 
-📚 Learning Resource
+## 📚 Learning Resource
 
 This project is being developed alongside the LearnOpenGL
  guide, serving as a practical, code-based implementation of its concepts.
 
-🙌 Credits
+## 🙌 Credits
 
 LearnOpenGL by Joey de Vries – The primary resource inspiring this engine.
 
 OpenGL, GLFW, GLAD, GLM – Core libraries powering the engine.
 
-📄 License
+## 📄 License
 
 This project is licensed under the MIT License – see the LICENSE file for details.
