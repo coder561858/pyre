@@ -18,6 +18,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
+unsigned int loadTexture(const char* path);
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -89,12 +90,12 @@ int main()
     // build and compile our shader zprogram
     // ------------------------------------
     Shader lightCubeShader(
-        "C:\\Users\\HP\\source\\repos\\pyre\\shaders\\cubeLightVertexShader.vs",
-        "C:\\Users\\HP\\source\\repos\\pyre\\shaders\\cubeLightFragmentShader.fs");
+        "shaders\\cubeLightVertexShader.vs",
+        "shaders\\cubeLightFragmentShader.fs");
 
     Shader lightShader(
-        "C:\\Users\\HP\\source\\repos\\pyre\\shaders\\ligthningVertexShader.vs",
-        "C:\\Users\\HP\\source\\repos\\pyre\\shaders\\lightningFragmentShader.fs"
+        "shaders\\ligthningVertexShader.vs",
+        "shaders\\lightningFragmentShader.fs"
     );
 
 
@@ -170,6 +171,10 @@ int main()
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
+    // Tex Coords
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
     unsigned int lightCubeVAO;
     glGenVertexArrays(1, &lightCubeVAO);
     glBindVertexArray(lightCubeVAO);
@@ -179,65 +184,17 @@ int main()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-
-    //// load and create a texture 
-    //// -------------------------
-    //unsigned int texture1, texture2;
-    //// texture 1
-    //// ---------
-    //glGenTextures(1, &texture1);
-    //glBindTexture(GL_TEXTURE_2D, texture1);
-    //// set the texture wrapping parameters
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    //// set texture filtering parameters
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    //// load image, create texture and generate mipmaps
-    //int width, height, nrChannels;
-    //stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-    //unsigned char* data = stbi_load("C:\\Users\\HP\\Downloads\\container2.jpg", &width, &height, &nrChannels, 0);
-    //if (data)
-    //{
-    //    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-    //    glGenerateMipmap(GL_TEXTURE_2D);
-    //}
-    //else
-    //{
-    //    std::cout << "Failed to load texture" << std::endl;
-    //}
-    //stbi_image_free(data);
-    //// texture 2
-    //// ---------
-    //glGenTextures(1, &texture2);
-    //glBindTexture(GL_TEXTURE_2D, texture2);
-    //// set the texture wrapping parameters
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    //// set texture filtering parameters
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    //// load image, create texture and generate mipmaps
-    //data = stbi_load("C:\\Users\\HP\\Downloads\\dirt.jpg", &width, &height, &nrChannels, 0);
-    //if (data)
-    //{
-    //    // note that the awesomeface.png has transparency and thus an alpha channel, so make sure to tell OpenGL the data type is of GL_RGBA
-    //    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    //    glGenerateMipmap(GL_TEXTURE_2D);
-    //}
-    //else
-    //{
-    //    std::cout << "Failed to load texture" << std::endl;
-    //}
-    //stbi_image_free(data);
-
-    
+    // load and create a texture
+    unsigned int diffuseMap = loadTexture("resources\\container3.png");
+    unsigned int specularMap = loadTexture("resources\\container3Spec.png");
 
     lightShader.use();
-    lightShader.setVec3("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
-    lightShader.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+    lightShader.setInt("material.diffuse", 0);
+    lightShader.setInt("material.specular", 1);
+    lightShader.setFloat("material.shininess", 32.0f);
     lightShader.setVec3("lightPos", lightPos);
-  
+
+
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
@@ -259,10 +216,18 @@ int main()
 
         // be sure to activate shader when setting uniforms/drawing objects
         lightShader.use();
+        glm::vec3 lightColor;
+        lightColor = glm::vec3(
+            1.0f,
+            1.0f,
+            1.0f
+        );
+        glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
+        glm::vec3 ambientColor = lightColor * glm::vec3(0.2f);
+        lightShader.setVec3("light.ambient", ambientColor);
+        lightShader.setVec3("light.diffuse", diffuseColor); 
+        lightShader.setVec3("light.specular", lightColor);
         lightShader.setVec3("lightPos", lightPos);
-        lightShader.setVec3("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
-        lightShader.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
-        lightShader.setVec3("viewPos", camera.Position);
 
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
@@ -274,10 +239,15 @@ int main()
         glm::mat4 model = glm::mat4(1.0f);
         lightShader.setMat4("model", model);
 
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, diffuseMap);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, specularMap);
+
         // render the cube
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
-
 
         // also draw the lamp object
         lightCubeShader.use();
@@ -287,6 +257,7 @@ int main()
         model = glm::translate(model, lightPos);
         model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
         lightCubeShader.setMat4("model", model);
+        lightCubeShader.setVec3("lightCubeColor", lightColor);
 
         glBindVertexArray(lightCubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -309,6 +280,45 @@ int main()
     // ------------------------------------------------------------------
     glfwTerminate();
     return 0;
+}
+
+unsigned int loadTexture(const char* path)
+{
+    unsigned int texture;
+    glGenTextures(1, &texture);
+
+    int width, height, nrChannels;
+
+    stbi_set_flip_vertically_on_load(true);
+
+    unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
+    if (data)
+    {
+        GLenum format;
+        if (nrChannels == 1)
+            format = GL_RED;
+        else if (nrChannels == 3)
+            format = GL_RGB;
+        else if (nrChannels == 4)
+            format = GL_RGBA;
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    }
+    else
+    {
+        std::cerr << "\033[31m Failed to load texture \033[0m" << std::endl;
+    }
+
+    stbi_image_free(data);
+
+    return texture;
 }
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly

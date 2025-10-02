@@ -1400,5 +1400,17 @@
     <Image Include="resources\dirt.jpg">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="resources\container3Spec.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\container3.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\logo.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\container.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>
