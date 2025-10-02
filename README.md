@@ -41,7 +41,7 @@ A demo scene will run more scenes will be added as development continues.
 ## 🤝 Contributing
 
 Contributions, bug reports, and suggestions are welcome!
-If you’d like to contribute, please read the CONTRIBUTING.md.
+If you’d like to contribute, please read the [CONTRIBUTING.md](https://github.com/Open-Source-Chandigarh/pyre?tab=contributing-ov-file).
 
 ## 📚 Learning Resource
 
