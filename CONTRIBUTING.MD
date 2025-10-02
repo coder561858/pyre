@@ -41,8 +41,8 @@ There are many ways to contribute, including:
 
 Not sure where to start? Look for issues labeled:
 
-* **good first issue** – simple issues that should only require minor changes.
-* **help wanted** – slightly more involved issues that are a good next step after completing your first contribution.
+- [Good first issues](https://github.com/Open-Source-Chandigarh/pyre/issues?q=is%3Aissue+is%3Aopen+label%3A%22good%20first%20issue%22) – beginner-friendly tasks
+- [Help wanted issues](https://github.com/Open-Source-Chandigarh/pyre/issues?q=is%3Aissue+is%3Aopen+label%3A%22help%20wanted%22) – more involved tasks
 
 ---
 
