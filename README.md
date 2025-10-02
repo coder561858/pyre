@@ -3,6 +3,10 @@
 **Pyre** is a lightweight graphics engine built with **OpenGL, GLFW, GLAD, and GLM**, inspired by the concepts and techniques taught in the [LearnOpenGL](https://learnopengl.com/) book.  
 It aims to provide a clear, modular, and educational implementation of modern rendering techniques, making it a great project for learning and experimenting with real-time graphics.  
 
+<div align="center">
+  <img src="resources/logo.jpg" alt="Pyre Logo" width="200"/>
+</div>
+
 ---
 
 ## ✨ Features  
