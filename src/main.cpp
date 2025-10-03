@@ -1,17 +1,22 @@
 #define STB_IMAGE_IMPLEMENTATION
-
+#include <Windows.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
+#pragma warning(push)
+#pragma warning(disable: 6262) // stack usage warning
 #include "stb_image.h"
+#pragma warning(pop)
 
 #include "Helpers/shaderClass.h"
 #include "Helpers/camera.h"
 
 #include <iostream>
+#include <vector> // <<-- added
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
@@ -35,9 +40,17 @@ bool mouseCaptured = true;
 float deltaTime = 0.0f;	// time between current frame and last frame
 float lastFrame = 0.0f;
 
-
 // lighting
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+
+// background color options 
+std::vector<glm::vec3> bgColors = {
+    glm::vec3(0.1f, 0.1f, 0.1f), // dark gray
+    glm::vec3(0.0f, 0.0f, 0.0f), // black
+    glm::vec3(0.0f, 0.0f, 1.0f), // blue
+    glm::vec3(1.0f, 0.0f, 0.0f)  // red
+};
+static int colorIndex = 0;
 
 int main()
 {
@@ -82,7 +95,7 @@ int main()
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
 
-    // build and compile our shader zprogram
+    // build and compile our shader programs
     // ------------------------------------
     Shader lightCubeShader(
         "shaders\\cubeLightVertexShader.vs",
@@ -93,13 +106,10 @@ int main()
         "shaders\\lightningFragmentShader.fs"
     );
 
-
-
-
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
     float vertices[] = {
-        // Positions          // Normals           // Texture Coords
+        // Positions              // Normals              // Texture Coords
 
         // Back face
         -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
@@ -187,8 +197,6 @@ int main()
     lightShader.setInt("material.diffuse", 0);
     lightShader.setInt("material.specular", 1);
     lightShader.setFloat("material.shininess", 32.0f);
-    lightShader.setVec3("lightPos", lightPos);
-
 
     // render loop
     // -----------
@@ -204,23 +212,32 @@ int main()
         // -----
         processInput(window);
 
+        // toggle background color on B press 
+        static bool bPreviouslyPressed = false;
+        bool bNowPressed = (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS);
+        if (bNowPressed && !bPreviouslyPressed)
+        {
+            colorIndex = (colorIndex + 1) % static_cast<int>(bgColors.size());
+        }
+        bPreviouslyPressed = bNowPressed;
+
         // render
         // ------
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glm::vec3 color = bgColors[colorIndex];
+        glClearColor(color.r, color.g, color.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Update light position for the current frame
+        lightPos.x = sin(static_cast<float>(glfwGetTime()));
+        lightPos.z = cos(static_cast<float>(glfwGetTime()));
 
         // be sure to activate shader when setting uniforms/drawing objects
         lightShader.use();
-        glm::vec3 lightColor;
-        lightColor = glm::vec3(
-            1.0f,
-            1.0f,
-            1.0f
-        );
+        glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
         glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
         glm::vec3 ambientColor = lightColor * glm::vec3(0.2f);
         lightShader.setVec3("light.ambient", ambientColor);
-        lightShader.setVec3("light.diffuse", diffuseColor); 
+        lightShader.setVec3("light.diffuse", diffuseColor);
         lightShader.setVec3("light.specular", lightColor);
         lightShader.setVec3("lightPos", lightPos);
 
@@ -257,9 +274,6 @@ int main()
         glBindVertexArray(lightCubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
-        lightPos.x = sin(glfwGetTime());
-        lightPos.z = cos((glfwGetTime()));
-
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
@@ -289,13 +303,15 @@ unsigned int loadTexture(const char* path)
     unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
     if (data)
     {
-        GLenum format;
+        GLenum format = GL_RGB;
         if (nrChannels == 1)
             format = GL_RED;
         else if (nrChannels == 3)
             format = GL_RGB;
         else if (nrChannels == 4)
             format = GL_RGBA;
+        // If nrChannels is unexpected, we keep GL_RGB as fallback.
+
         glBindTexture(GL_TEXTURE_2D, texture);
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
 
@@ -303,12 +319,12 @@ unsigned int loadTexture(const char* path)
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     }
     else
     {
-        std::cerr << "\033[31m Failed to load texture \033[0m" << std::endl;
+        std::cerr << "\033[31m Failed to load texture: " << path << " \033[0m" << std::endl;
     }
 
     stbi_image_free(data);
@@ -320,7 +336,10 @@ unsigned int loadTexture(const char* path)
 // ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow* window)
 {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    // Escape: release mouse (only on press to avoid constant resets)
+    static bool escPreviouslyPressed = false;
+    bool escNowPressed = (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS);
+    if (escNowPressed && !escPreviouslyPressed)
     {
         if (mouseCaptured)
         {
@@ -328,6 +347,7 @@ void processInput(GLFWwindow* window)
             mouseCaptured = false;
         }
     }
+    escPreviouslyPressed = escNowPressed;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime);
@@ -356,7 +376,6 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         firstMouse = true; // to avoid sudden jumps in camera
     }
 }
-
 
 // glfw: whenever the mouse moves, this callback is called
 // -------------------------------------------------------
