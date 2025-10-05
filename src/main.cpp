@@ -209,14 +209,18 @@ int main()
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // be sure to activate shader when setting uniforms/drawing objects
-        lightShader.use();
-        glm::vec3 lightColor;
-        lightColor = glm::vec3(
-            1.0f,
-            1.0f,
-            1.0f
-        );
+        // Animate light color
+    float time = static_cast<float>(glfwGetTime());
+       glm::vec3 lightColor;
+       lightColor.r = sin(time * 2.0f) * 0.5f + 0.5f;  // normalize to [0,1]
+       lightColor.g = sin(time * 0.7f) * 0.5f + 0.5f;
+       lightColor.b = sin(time * 1.3f) * 0.5f + 0.5f;
+
+        // Use shader and set uniform
+       lightShader.use();
+       lightShader.setVec3("lightCubeColor", lightColor);
+
+
         glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
         glm::vec3 ambientColor = lightColor * glm::vec3(0.2f);
         lightShader.setVec3("light.ambient", ambientColor);
@@ -337,6 +341,12 @@ void processInput(GLFWwindow* window)
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
+        //Reset camera with R key
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+    {
+        camera.Reset();
+        std::cout << "Camera reset!\n";
+    }
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
