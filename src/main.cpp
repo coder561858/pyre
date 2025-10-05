@@ -35,6 +35,10 @@ bool mouseCaptured = true;
 float deltaTime = 0.0f;	// time between current frame and last frame
 float lastFrame = 0.0f;
 
+// rotation
+float rotationSpeed = 50.0f;   // degrees per second
+float rotationAngle = 0.0f;
+
 
 // lighting
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
@@ -234,8 +238,11 @@ int main()
         lightShader.setMat4("projection", projection);
         lightShader.setMat4("view", view);
 
-        // world transformation
-        glm::mat4 model = glm::mat4(1.0f);
+         // Rotation logic
+        rotationAngle += rotationSpeed * deltaTime;
+        glm::mat4 model = glm::rotate(glm::mat4(1.0f),
+            glm::radians(rotationAngle),
+            glm::vec3(0.0f, 1.0f, 0.0f));
         lightShader.setMat4("model", model);
 
         glActiveTexture(GL_TEXTURE0);
@@ -325,13 +332,18 @@ unsigned int loadTexture(const char* path)
 void processInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    {
-        if (mouseCaptured)
-        {
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-            mouseCaptured = false;
-        }
-    }
+        glfwSetWindowShouldClose(window, true);
+
+    // Increase rotation speed
+    if (glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_EQUAL) == GLFW_PRESS)
+        rotationSpeed += 10.0f;
+
+    // Decrease rotation speed
+    if (glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_MINUS) == GLFW_PRESS)
+        rotationSpeed -= 10.0f;
+
+    if (rotationSpeed < 0.0f)
+        rotationSpeed = 0.0f;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime);
