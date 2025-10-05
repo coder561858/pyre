@@ -39,7 +39,6 @@ public:
 
     // constructor with vectors
     Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f),
-<<<<<<< HEAD
         glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
         float yaw = YAW,
         float pitch = PITCH)
@@ -47,15 +46,6 @@ public:
         MovementSpeed(SPEED),
         MouseSensitivity(SENSITIVITY),
         Zoom(ZOOM)
-=======
-           glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
-           float yaw = YAW,
-           float pitch = PITCH)
-        : Front(glm::vec3(0.0f, 0.0f, -1.0f)),
-          MovementSpeed(SPEED),
-          MouseSensitivity(SENSITIVITY),
-          Zoom(ZOOM)
->>>>>>> 6122aa99b4faa20e24feac1288b2f00b26836978
     {
         Position = position;
         WorldUp = up;
@@ -66,21 +56,12 @@ public:
 
     // constructor with scalar values
     Camera(float posX, float posY, float posZ,
-<<<<<<< HEAD
         float upX, float upY, float upZ,
         float yaw, float pitch)
         : Front(glm::vec3(0.0f, 0.0f, -1.0f)),
         MovementSpeed(SPEED),
         MouseSensitivity(SENSITIVITY),
         Zoom(ZOOM)
-=======
-           float upX, float upY, float upZ,
-           float yaw, float pitch)
-        : Front(glm::vec3(0.0f, 0.0f, -1.0f)),
-          MovementSpeed(SPEED),
-          MouseSensitivity(SENSITIVITY),
-          Zoom(ZOOM)
->>>>>>> 6122aa99b4faa20e24feac1288b2f00b26836978
     {
         Position = glm::vec3(posX, posY, posZ);
         WorldUp = glm::vec3(upX, upY, upZ);
@@ -139,19 +120,11 @@ public:
     void Reset()
     {
         Position = glm::vec3(0.0f, 0.0f, 3.0f);
-<<<<<<< HEAD
         Front = glm::vec3(0.0f, 0.0f, -1.0f);
         Up = glm::vec3(0.0f, 1.0f, 0.0f);
         Yaw = YAW;
         Pitch = PITCH;
         Zoom = ZOOM;
-=======
-        Front    = glm::vec3(0.0f, 0.0f, -1.0f);
-        Up       = glm::vec3(0.0f, 1.0f, 0.0f);
-        Yaw      = YAW;
-        Pitch    = PITCH;
-        Zoom     = ZOOM;
->>>>>>> 6122aa99b4faa20e24feac1288b2f00b26836978
         updateCameraVectors();
     }
 
@@ -165,10 +138,6 @@ private:
         front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
         Front = glm::normalize(front);
         Right = glm::normalize(glm::cross(Front, WorldUp));
-<<<<<<< HEAD
         Up = glm::normalize(glm::cross(Right, Front));
-=======
-        Up    = glm::normalize(glm::cross(Right, Front));
->>>>>>> 6122aa99b4faa20e24feac1288b2f00b26836978
     }
 };
