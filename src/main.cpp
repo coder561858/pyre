@@ -220,7 +220,7 @@ int main()
         glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
         glm::vec3 ambientColor = lightColor * glm::vec3(0.2f);
         lightShader.setVec3("light.ambient", ambientColor);
-        lightShader.setVec3("light.diffuse", diffuseColor); 
+        lightShader.setVec3("light.diffuse", diffuseColor);
         lightShader.setVec3("light.specular", lightColor);
         lightShader.setVec3("lightPos", lightPos);
 
@@ -337,6 +337,12 @@ void processInput(GLFWwindow* window)
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
+    //Reset camera with R key
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+    {
+        camera.Reset();
+        std::cout << "Camera reset!\n";
+    }
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
