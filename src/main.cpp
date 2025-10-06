@@ -305,7 +305,7 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
 
-    // 🔸 FIXED: Change background color only once per key press
+    
     static bool bKeyPressed = false;
     if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS && !bKeyPressed)
     {
