@@ -36,6 +36,13 @@ bool mouseCaptured = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+
+// rotation
+float rotationSpeed = 50.0f;   // degrees per second
+float rotationAngle = 0.0f;
+
+
+
 // lighting
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 glm::vec3 lightColor(1.0f);
@@ -198,6 +205,7 @@ int main()
         // process input
         processInput(window);
 
+
         // render background
         glm::vec3 color = bgColors[colorIndex];
         glClearColor(color.r, color.g, color.b, 1.0f);
@@ -209,6 +217,28 @@ int main()
 
         // lighting shader
         lightShader.use();
+
+
+        glm::vec3 lightColor = glm::vec3(1.0f);
+
+        // render
+        // ------   
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Animate light color
+        float time = static_cast<float>(glfwGetTime());
+        glm::vec3 lightColor;
+        lightColor.r = sin(time * 2.0f) * 0.5f + 0.5f;  // normalize to [0,1]
+        lightColor.g = sin(time * 0.7f) * 0.5f + 0.5f;
+        lightColor.b = sin(time * 1.3f) * 0.5f + 0.5f;
+
+        // Use shader and set uniform
+        lightShader.use();
+        lightShader.setVec3("lightCubeColor", lightColor);
+
+
+
         glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
         glm::vec3 ambientColor = lightColor * glm::vec3(0.2f);
         lightShader.setVec3("light.ambient", ambientColor);
@@ -223,8 +253,11 @@ int main()
         lightShader.setMat4("projection", projection);
         lightShader.setMat4("view", view);
 
-        // world transformation
-        glm::mat4 model = glm::mat4(1.0f);
+        // Rotation logic
+        rotationAngle += rotationSpeed * deltaTime;
+        glm::mat4 model = glm::rotate(glm::mat4(1.0f),
+            glm::radians(rotationAngle),
+            glm::vec3(0.0f, 1.0f, 0.0f));
         lightShader.setMat4("model", model);
 
         glActiveTexture(GL_TEXTURE0);
@@ -293,8 +326,41 @@ unsigned int loadTexture(const char* path)
 
 void processInput(GLFWwindow* window)
 {
+
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+
+
+
+    // Escape: release mouse (on press)
+    static bool escPreviouslyPressed = false;
+    bool escNowPressed = (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS);
+    if (escNowPressed && !escPreviouslyPressed)
+    {
+        if (mouseCaptured)
+        {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            mouseCaptured = false;
+        }
+    }
+    escPreviouslyPressed = escNowPressed;
+
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+
+    // Increase rotation speed
+    if (glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_EQUAL) == GLFW_PRESS)
+        rotationSpeed += 10.0f;
+
+    // Decrease rotation speed
+    if (glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_MINUS) == GLFW_PRESS)
+        rotationSpeed -= 10.0f;
+
+    if (rotationSpeed < 0.0f)
+        rotationSpeed = 0.0f;
+
+
+    // Move camera
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime);
@@ -304,10 +370,19 @@ void processInput(GLFWwindow* window)
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
+
      
     // Toggle bg color
     static bool bKeyPressed = false;
     if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS && !bKeyPressed)
+
+
+
+    // Toggle background color
+    static bool bPreviouslyPressed = false;
+    bool bNowPressed = (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS);
+    if (bNowPressed && !bPreviouslyPressed)
+
     {
         colorIndex = (colorIndex + 1) % bgColors.size();
         bKeyPressed = true;
@@ -316,6 +391,17 @@ void processInput(GLFWwindow* window)
     {
         bKeyPressed = false;
     }
+
+    bPreviouslyPressed = bNowPressed;
+
+    //Reset camera with R key
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+    {
+        camera.Reset();
+        std::cout << "Camera reset!\n";
+    }
+
+
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
