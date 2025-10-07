@@ -1,12 +1,13 @@
 #define STB_IMAGE_IMPLEMENTATION
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-
 #include "stb_image.h"
+
 #include "Helpers/shaderClass.h"
 #include "Helpers/camera.h"
 
@@ -36,9 +37,13 @@ bool mouseCaptured = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+// rotation
+float rotationSpeed = 50.0f;
+float rotationAngle = 0.0f;
+
 // lighting
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
-glm::vec3 lightColor(1.0f);
+glm::vec3 lightColor(1.0f); // 
 
 // background color options
 std::vector<glm::vec3> bgColors = {
@@ -57,13 +62,13 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-#ifdef _APPLE_
+#ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
     // glfw window creation
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Graphics Engine", NULL, NULL);
-    if (window == NULL)
+    if (!window)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -75,7 +80,7 @@ int main()
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
 
-    // tell GLFW to capture our mouse
+    // capture mouse
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // glad: load all OpenGL function pointers
@@ -85,70 +90,56 @@ int main()
         return -1;
     }
 
-    // configure global opengl state
     glEnable(GL_DEPTH_TEST);
 
-    // build and compile our shader programs
-    Shader lightCubeShader(
-        "shaders\\cubeLightVertexShader.vs",
-        "shaders\\cubeLightFragmentShader.fs");
+    // shaders
+    Shader lightCubeShader("shaders\\cubeLightVertexShader.vs", "shaders\\cubeLightFragmentShader.fs");
+    Shader lightShader("shaders\\ligthningVertexShader.vs", "shaders\\lightningFragmentShader.fs");
 
-    Shader lightShader(
-        "shaders\\ligthningVertexShader.vs",
-        "shaders\\lightningFragmentShader.fs"
-    );
-
-    // set up vertex data (and buffer(s)) and configure vertex attributes
+    // cube vertex data
     float vertices[] = {
-        // Positions              // Normals              // Texture Coords
+        // Positions          // Normals           // Texture Coords
+        -0.5f,-0.5f,-0.5f,  0.0f,0.0f,-1.0f,  0.0f,0.0f,
+         0.5f,-0.5f,-0.5f,  0.0f,0.0f,-1.0f,  1.0f,0.0f,
+         0.5f, 0.5f,-0.5f,  0.0f,0.0f,-1.0f,  1.0f,1.0f,
+         0.5f, 0.5f,-0.5f,  0.0f,0.0f,-1.0f,  1.0f,1.0f,
+        -0.5f, 0.5f,-0.5f,  0.0f,0.0f,-1.0f,  0.0f,1.0f,
+        -0.5f,-0.5f,-0.5f,  0.0f,0.0f,-1.0f,  0.0f,0.0f,
 
-        // Back face
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
+        -0.5f,-0.5f, 0.5f,  0.0f,0.0f,1.0f,  0.0f,0.0f,
+         0.5f,-0.5f, 0.5f,  0.0f,0.0f,1.0f,  1.0f,0.0f,
+         0.5f, 0.5f, 0.5f,  0.0f,0.0f,1.0f,  1.0f,1.0f,
+         0.5f, 0.5f, 0.5f,  0.0f,0.0f,1.0f,  1.0f,1.0f,
+        -0.5f, 0.5f, 0.5f,  0.0f,0.0f,1.0f,  0.0f,1.0f,
+        -0.5f,-0.5f, 0.5f,  0.0f,0.0f,1.0f,  0.0f,0.0f,
 
-        // Front face
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f,
+        -0.5f, 0.5f, 0.5f,-1.0f,0.0f,0.0f,  1.0f,0.0f,
+        -0.5f, 0.5f,-0.5f,-1.0f,0.0f,0.0f,  1.0f,1.0f,
+        -0.5f,-0.5f,-0.5f,-1.0f,0.0f,0.0f,  0.0f,1.0f,
+        -0.5f,-0.5f,-0.5f,-1.0f,0.0f,0.0f,  0.0f,1.0f,
+        -0.5f,-0.5f, 0.5f,-1.0f,0.0f,0.0f,  0.0f,0.0f,
+        -0.5f, 0.5f, 0.5f,-1.0f,0.0f,0.0f,  1.0f,0.0f,
 
-        // Left face
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+         0.5f, 0.5f, 0.5f,1.0f,0.0f,0.0f, 1.0f,0.0f,
+         0.5f, 0.5f,-0.5f,1.0f,0.0f,0.0f, 1.0f,1.0f,
+         0.5f,-0.5f,-0.5f,1.0f,0.0f,0.0f, 0.0f,1.0f,
+         0.5f,-0.5f,-0.5f,1.0f,0.0f,0.0f, 0.0f,1.0f,
+         0.5f,-0.5f, 0.5f,1.0f,0.0f,0.0f, 0.0f,0.0f,
+         0.5f, 0.5f, 0.5f,1.0f,0.0f,0.0f, 1.0f,0.0f,
 
-        // Right face
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+        -0.5f,-0.5f,-0.5f,0.0f,-1.0f,0.0f,0.0f,1.0f,
+         0.5f,-0.5f,-0.5f,0.0f,-1.0f,0.0f,1.0f,1.0f,
+         0.5f,-0.5f, 0.5f,0.0f,-1.0f,0.0f,1.0f,0.0f,
+         0.5f,-0.5f, 0.5f,0.0f,-1.0f,0.0f,1.0f,0.0f,
+        -0.5f,-0.5f, 0.5f,0.0f,-1.0f,0.0f,0.0f,0.0f,
+        -0.5f,-0.5f,-0.5f,0.0f,-1.0f,0.0f,0.0f,1.0f,
 
-         // Bottom face
-         -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-          0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
-          0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
-          0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
-         -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
-         -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-
-         // Top face
-         -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
-          0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
-          0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-          0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-         -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
-         -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
+        -0.5f, 0.5f,-0.5f,0.0f,1.0f,0.0f,0.0f,1.0f,
+         0.5f, 0.5f,-0.5f,0.0f,1.0f,0.0f,1.0f,1.0f,
+         0.5f, 0.5f, 0.5f,0.0f,1.0f,0.0f,1.0f,0.0f,
+         0.5f, 0.5f, 0.5f,0.0f,1.0f,0.0f,1.0f,0.0f,
+        -0.5f, 0.5f, 0.5f,0.0f,1.0f,0.0f,0.0f,0.0f,
+        -0.5f, 0.5f,-0.5f,0.0f,1.0f,0.0f,0.0f,1.0f
     };
 
     unsigned int VBO, VAO;
@@ -156,22 +147,20 @@ int main()
     glGenBuffers(1, &VBO);
 
     glBindVertexArray(VAO);
-
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    // position attribute
+    // positions
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-
-    // normal attribute
+    // normals
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
-
-    // Tex Coords
+    // tex coords
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
+    // light cube VAO
     unsigned int lightCubeVAO;
     glGenVertexArrays(1, &lightCubeVAO);
     glBindVertexArray(lightCubeVAO);
@@ -179,7 +168,7 @@ int main()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    // load and create textures
+    // textures
     unsigned int diffuseMap = loadTexture("resources\\container3.png");
     unsigned int specularMap = loadTexture("resources\\container3Spec.png");
 
@@ -187,6 +176,7 @@ int main()
     lightShader.setInt("material.diffuse", 0);
     lightShader.setInt("material.specular", 1);
     lightShader.setFloat("material.shininess", 32.0f);
+    lightShader.setVec3("lightPos", lightPos);
 
     // render loop
     while (!glfwWindowShouldClose(window))
@@ -195,20 +185,23 @@ int main()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        // process input
         processInput(window);
 
-        // render background
+        // clear screen with selected background color
         glm::vec3 color = bgColors[colorIndex];
         glClearColor(color.r, color.g, color.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Update light position
-        lightPos.x = sin(static_cast<float>(glfwGetTime()));
-        lightPos.z = cos(static_cast<float>(glfwGetTime()));
+        // animate light color using global lightColor
+        float time = static_cast<float>(glfwGetTime());
+        lightColor.r = sin(time * 2.0f) * 0.5f + 0.5f;
+        lightColor.g = sin(time * 0.7f) * 0.5f + 0.5f;
+        lightColor.b = sin(time * 1.3f) * 0.5f + 0.5f;
 
-        // lighting shader
+        // use light shader
         lightShader.use();
+        lightShader.setVec3("lightCubeColor", lightColor);
+
         glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
         glm::vec3 ambientColor = lightColor * glm::vec3(0.2f);
         lightShader.setVec3("light.ambient", ambientColor);
@@ -216,15 +209,16 @@ int main()
         lightShader.setVec3("light.specular", lightColor);
         lightShader.setVec3("lightPos", lightPos);
 
-        // view/projection transformations
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom),
-            (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
         lightShader.setMat4("projection", projection);
         lightShader.setMat4("view", view);
 
-        // world transformation
-        glm::mat4 model = glm::mat4(1.0f);
+        // rotation
+        rotationAngle += rotationSpeed * deltaTime;
+        glm::mat4 model = glm::rotate(glm::mat4(1.0f),
+            glm::radians(rotationAngle),
+            glm::vec3(0.0f, 1.0f, 0.0f));
         lightShader.setMat4("model", model);
 
         glActiveTexture(GL_TEXTURE0);
@@ -240,14 +234,16 @@ int main()
         lightCubeShader.use();
         lightCubeShader.setMat4("projection", projection);
         lightCubeShader.setMat4("view", view);
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, lightPos);
+        model = glm::translate(glm::mat4(1.0f), lightPos);
         model = glm::scale(model, glm::vec3(0.2f));
         lightCubeShader.setMat4("model", model);
         lightCubeShader.setVec3("lightCubeColor", lightColor);
 
         glBindVertexArray(lightCubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        lightPos.x = sin(glfwGetTime());
+        lightPos.z = cos(glfwGetTime());
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -259,42 +255,45 @@ int main()
     return 0;
 }
 
+// --- texture loader ---
 unsigned int loadTexture(const char* path)
 {
     unsigned int texture;
     glGenTextures(1, &texture);
-    int width, height, nrChannels;
 
+    int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true);
     unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
     if (data)
     {
-        GLenum format = GL_RGB;
-        if (nrChannels == 1) format = GL_RED;
-        else if (nrChannels == 3) format = GL_RGB;
-        else if (nrChannels == 4) format = GL_RGBA;
-
+        GLenum format = (nrChannels == 1 ? GL_RED : (nrChannels == 3 ? GL_RGB : GL_RGBA));
         glBindTexture(GL_TEXTURE_2D, texture);
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     }
     else
-    {
-        std::cout << "Failed to load texture: " << path << std::endl;
-    }
+        std::cerr << "\033[31m Failed to load texture \033[0m" << std::endl;
+
     stbi_image_free(data);
     return texture;
 }
 
+// --- input processing ---
 void processInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+
+    if (glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_EQUAL) == GLFW_PRESS)
+        rotationSpeed += 10.0f;
+    if (glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_MINUS) == GLFW_PRESS)
+        rotationSpeed -= 10.0f;
+    if (rotationSpeed < 0.0f) rotationSpeed = 0.0f;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime);
@@ -305,7 +304,6 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
 
-    
     static bool bKeyPressed = false;
     if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS && !bKeyPressed)
     {
@@ -313,19 +311,36 @@ void processInput(GLFWwindow* window)
         bKeyPressed = true;
     }
     if (glfwGetKey(window, GLFW_KEY_B) == GLFW_RELEASE)
-    {
         bKeyPressed = false;
+
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+    {
+        camera.Reset();
+        std::cout << "Camera reset!\n";
     }
 }
 
+// --- callbacks ---
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
 }
 
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !mouseCaptured)
+    {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        mouseCaptured = true;
+        firstMouse = true;
+    }
+}
+
+void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
     if (!mouseCaptured) return;
+    float xpos = static_cast<float>(xposIn);
+    float ypos = static_cast<float>(yposIn);
 
     if (firstMouse)
     {
@@ -344,22 +359,5 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    camera.ProcessMouseScroll(yoffset);
-}
-
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
-{
-    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
-    {
-        mouseCaptured = !mouseCaptured;
-        if (mouseCaptured)
-        {
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-            firstMouse = true;
-        }
-        else
-        {
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        }
-    }
+    camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
